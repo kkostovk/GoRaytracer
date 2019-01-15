@@ -1,6 +1,20 @@
 package main
 
-import "github.com/veandco/go-sdl2/sdl"
+import (
+	"github.com/veandco/go-sdl2/sdl"
+)
+
+const frameHeight int = 480
+const frameWidth int = 640
+
+func render(r *sdl.Renderer) {
+	for x := 0; x < frameWidth; x++ {
+		for y := 0; y < frameHeight; y++ {
+			r.SetDrawColor(uint8(float64(x)/float64(frameWidth)*255.0), uint8(float64(y)/float64(frameHeight)*255), 0, 0)
+			r.DrawPoint(int32(x), int32(y))
+		}
+	}
+}
 
 func main() {
 	err := sdl.Init(sdl.INIT_EVERYTHING)
@@ -9,7 +23,7 @@ func main() {
 	}
 	defer sdl.Quit()
 
-	window, err := sdl.CreateWindow("GoRaytracer", sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED, 256, 256, sdl.WINDOW_SHOWN)
+	window, err := sdl.CreateWindow("GoRaytracer", sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED, int32(frameWidth), int32(frameHeight), sdl.WINDOW_SHOWN)
 	if err != nil {
 		return
 	}
@@ -27,12 +41,7 @@ func main() {
 	}
 	defer renderer.Destroy()
 
-	for i := 0; i < 256; i++ {
-		for j := 0; j < 256; j++ {
-			renderer.SetDrawColor(uint8(i), uint8(j), 0, 0)
-			renderer.DrawPoint(int32(i), int32(j))
-		}
-	}
+	render(renderer)
 	renderer.Present()
 
 	running := true
