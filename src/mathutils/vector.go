@@ -6,7 +6,7 @@ type Vector struct {
 	X, Y, Z float64
 }
 
-func newVector(x, y, z float64) Vector {
+func NewVector(x, y, z float64) Vector {
 	return Vector{x, y, z}
 }
 
