@@ -12,11 +12,11 @@ func TestNewMatrix(t *testing.T) {
 	resMatr2 := Matrix{{0, 0, 0}, {0, 0, 0}, {0, 0, 0}}
 
 	if matr1 != resMatr1 {
-		t.Errorf("NewMatrix failed!")
+		t.Errorf("NewMatrix() failed!")
 	}
 
 	if matr2 != resMatr2 {
-		t.Errorf("NewMatrix failed!")
+		t.Errorf("NewMatrix() failed!")
 	}
 }
 
@@ -27,7 +27,7 @@ func TestRotationAroundX(t *testing.T) {
 
 	vec = MultiplyVectorMatrix(vec, rotationMatrix)
 	if math.Abs(vec.X-res.X) > 1e-10 || math.Abs(vec.Y-res.Y) > 1e-10 || math.Abs(vec.Z-res.Z) > 1e-10 {
-		t.Errorf("RotationAroundX failed!")
+		t.Errorf("RotationAroundX() failed!")
 	}
 }
 
@@ -38,7 +38,7 @@ func TestRotationAroundY(t *testing.T) {
 
 	vec = MultiplyVectorMatrix(vec, rotationMatrix)
 	if math.Abs(vec.X-res.X) > 1e-10 || math.Abs(vec.Y-res.Y) > 1e-10 || math.Abs(vec.Z-res.Z) > 1e-10 {
-		t.Errorf("RotationAroundY failed!")
+		t.Errorf("RotationAroundY() failed!")
 	}
 }
 
@@ -49,19 +49,19 @@ func TestRotationAroundZ(t *testing.T) {
 
 	vec = MultiplyVectorMatrix(vec, rotationMatrix)
 	if math.Abs(vec.X-res.X) > 1e-10 || math.Abs(vec.Y-res.Y) > 1e-10 || math.Abs(vec.Z-res.Z) > 1e-10 {
-		t.Errorf("RotationAroundZ failed!")
+		t.Errorf("RotationAroundZ() failed!")
 	}
 }
 
 func TestDeterminant(t *testing.T) {
 	matrix := NewMatrix(1)
 	if matrix.Determinant() != 1 {
-		t.Errorf("Determinant failed!")
+		t.Errorf("Determinant() failed!")
 	}
 
 	matrix = Matrix{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}
 	if matrix.Determinant() != 0 {
-		t.Errorf("Determinant failed!")
+		t.Errorf("Determinant() failed!")
 	}
 }
 
@@ -70,7 +70,7 @@ func TestMatrixMultiplication(t *testing.T) {
 	rhs := NewMatrix(1)
 	res := MatrixMultiplication(lhs, rhs)
 	if res != NewMatrix(1) {
-		t.Errorf("MatrixMultiplication failed!")
+		t.Errorf("MatrixMultiplication() failed!")
 	}
 
 	lhs = Matrix{{1, 1, 2}, {3, 5, 8}, {4, 2, 0}}
@@ -79,7 +79,7 @@ func TestMatrixMultiplication(t *testing.T) {
 	res = MatrixMultiplication(lhs, rhs)
 
 	if expected != res {
-		t.Errorf("MatrixMultiplication failed!")
+		t.Errorf("MatrixMultiplication() failed!")
 	}
 }
 
@@ -88,13 +88,13 @@ func TestMultiplyVectorMatrix(t *testing.T) {
 	matrix := NewMatrix(1)
 	res := MultiplyVectorMatrix(vec, matrix)
 	if res != NewVector(1, 2, 4) {
-		t.Errorf("MultiplyVectorMatrix failed!")
+		t.Errorf("MultiplyVectorMatrix() failed!")
 	}
 
 	vec = NewVector(4, 2, 1)
 	matrix = Matrix{{1, 1, 2}, {3, 5, 8}, {13, 21, 34}}
 	res = MultiplyVectorMatrix(vec, matrix)
 	if res != NewVector(23, 35, 58) {
-		t.Errorf("MultiplyVectorMatrix failed!")
+		t.Errorf("MultiplyVectorMatrix() failed!")
 	}
 }
