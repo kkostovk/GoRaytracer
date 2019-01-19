@@ -42,3 +42,7 @@ func DotProduct(lhs, rhs Vector) float64 {
 func CrossProduct(lhs, rhs Vector) Vector {
 	return Vector{lhs.Y*rhs.Z - lhs.Z*rhs.Y, lhs.Z*rhs.X - lhs.X*rhs.Z, lhs.X*rhs.Y - lhs.Y*rhs.X}
 }
+
+func VectorSubstraction(lhs, rhs Vector) Vector {
+	return Vector{lhs.X - rhs.X, lhs.Y - rhs.Y, lhs.Z - rhs.Z}
+}
