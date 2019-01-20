@@ -1,0 +1,93 @@
+package raytracer
+
+import (
+	"GoRaytracer/src/mathutils"
+	"math"
+)
+
+//Plane orientation
+const (
+	XY = iota
+	XZ
+	YZ
+)
+
+type IntersectionInfo struct {
+	Position mathutils.Vector
+	Normal   mathutils.Vector
+	Distance float64
+	U, V     float64
+}
+
+type Geometry interface {
+	Intersect(*Ray, *IntersectionInfo) bool
+}
+
+type Plane struct {
+	center      mathutils.Vector
+	limit       float64
+	orientation uint8
+}
+
+func NewPlane(center mathutils.Vector, limit float64, orientation uint8) Plane {
+	return Plane{center, limit, orientation}
+}
+
+func (p *Plane) Intersect(ray *Ray, info *IntersectionInfo) bool {
+
+	var start, direction, plane float64
+
+	if p.orientation == XY {
+		start = ray.Start.Z
+		direction = ray.Direction.Z
+		plane = p.center.Z
+	} else if p.orientation == XZ {
+		start = ray.Start.Y
+		direction = ray.Direction.Y
+		plane = p.center.Y
+	} else {
+		start = ray.Start.X
+		direction = ray.Direction.X
+		plane = p.center.X
+	}
+
+	if direction >= 0.0 && start > plane || direction <= 0.0 && start < plane {
+		return false
+	}
+
+	multiplayer := (start - plane) / -direction
+
+	info.Position = ray.Direction
+	info.Position.Multiply(multiplayer)
+	info.Position = mathutils.VectorAddition(info.Position, ray.Start)
+	info.Distance = multiplayer
+
+	if p.orientation == XY {
+		if math.Abs(p.center.X-info.Position.X) > p.limit/2 || math.Abs(p.center.Y-info.Position.Y) > p.limit/2 {
+			return false
+		}
+		info.U = info.Position.X
+		info.V = info.Position.Y
+		info.Normal = mathutils.NewVector(0, 0, 1)
+	} else if p.orientation == XZ {
+		if math.Abs(p.center.X-info.Position.X) > p.limit/2 || math.Abs(p.center.Z-info.Position.Z) > p.limit/2 {
+			return false
+		}
+		info.U = info.Position.X
+		info.V = info.Position.Z
+		info.Normal = mathutils.NewVector(0, 1, 0)
+	} else {
+		if math.Abs(p.center.Y-info.Position.Y) > p.limit/2 || math.Abs(p.center.Z-info.Position.Z) > p.limit/2 {
+			return false
+		}
+		info.U = info.Position.Y
+		info.V = info.Position.Z
+		info.Normal = mathutils.NewVector(1, 0, 0)
+	}
+
+	if mathutils.DotProduct(ray.Direction, info.Normal) > 0 {
+		info.Normal.UnaryMinus()
+	}
+
+	return true
+}
