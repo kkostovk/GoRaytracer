@@ -1,17 +1,59 @@
 package main
 
 import (
+	"GoRaytracer/src/mathutils"
+	"GoRaytracer/src/raytracer"
+	"GoRaytracer/src/utils"
+
 	"github.com/veandco/go-sdl2/sdl"
 )
 
 const frameHeight int = 480
 const frameWidth int = 640
 
-func render(r *sdl.Renderer) {
+var Lights []raytracer.Light
+var nodes []*raytracer.Node
+var camera raytracer.ParallelCamera
+
+func setupScene() {
+	// Setup camera
+	camera = raytracer.NewParallelCamera(mathutils.NewVector(40, -30, 50), 0, -30, 0, 90, float64(frameWidth)/float64(frameHeight))
+	// Add scene nodes
+	plane := raytracer.NewPlane(mathutils.NewVector(0, 0, 0), 500.0, 1)
+	checker := raytracer.NewChecker(utils.NewColor(255, 0, 0), utils.NewColor(0, 0, 255))
+	node := raytracer.NewNode(&plane, &checker)
+	nodes = append(nodes, &node)
+}
+
+func raytrace(ray *raytracer.Ray) utils.Color {
+	var info raytracer.IntersectionInfo
+
+	var closestInfo *raytracer.IntersectionInfo
+	var closestNode *raytracer.Node
+	for _, node := range nodes {
+		if (*node.GetGeometry()).Intersect(ray, &info) {
+			if closestInfo == nil || info.Distance < closestInfo.Distance {
+				closestInfo = &info
+				closestNode = node
+			}
+		}
+	}
+
+	if closestNode != nil {
+		return (*closestNode.GetShader()).Shade(ray, closestInfo)
+	}
+
+	return utils.NewColor(0, 0, 0)
+}
+
+func render(renderer *sdl.Renderer) {
 	for x := 0; x < frameWidth; x++ {
 		for y := 0; y < frameHeight; y++ {
-			r.SetDrawColor(uint8(float64(x)/float64(frameWidth)*255.0), uint8(float64(y)/float64(frameHeight)*255), 0, 0)
-			r.DrawPoint(int32(x), int32(y))
+			ray := camera.GetScreenRay(float64(x), float64(y))
+			resColor := raytrace(&ray)
+			r, g, b := resColor.ToRGB()
+			renderer.SetDrawColor(r, g, b, 0)
+			renderer.DrawPoint(int32(x), int32(y))
 		}
 	}
 }
@@ -41,6 +83,7 @@ func main() {
 	}
 	defer renderer.Destroy()
 
+	setupScene()
 	render(renderer)
 	renderer.Present()
 
