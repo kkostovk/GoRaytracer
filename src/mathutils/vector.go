@@ -46,3 +46,11 @@ func CrossProduct(lhs, rhs Vector) Vector {
 func VectorSubstraction(lhs, rhs Vector) Vector {
 	return Vector{lhs.X - rhs.X, lhs.Y - rhs.Y, lhs.Z - rhs.Z}
 }
+
+func VectorAddition(lhs, rhs Vector) Vector {
+	return Vector{lhs.X + rhs.X, lhs.Y + rhs.Y, lhs.Z + rhs.Z}
+}
+
+func VectorMultiply(lhs Vector, rhs float64) Vector {
+	return Vector{lhs.X * rhs, lhs.Y * rhs, lhs.Z * rhs}
+}

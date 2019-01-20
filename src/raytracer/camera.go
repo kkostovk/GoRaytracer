@@ -56,6 +56,7 @@ func (c *ParallelCamera) GetScreenRay(x, y float64) Ray {
 
 	direction.Add(width)
 	direction.Add(height)
+	direction = mathutils.VectorSubstraction(direction, c.position)
 	direction.Normalize()
 
 	return Ray{c.position, direction}

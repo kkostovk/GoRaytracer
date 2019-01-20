@@ -5,5 +5,5 @@ import (
 )
 
 type Ray struct {
-	start, direction mathutils.Vector
+	Start, Direction mathutils.Vector
 }
