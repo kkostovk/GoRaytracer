@@ -135,3 +135,64 @@ func (s *Sphere) Intersect(ray *Ray, info *IntersectionInfo) bool {
 	info.V = -(info.V + math.Pi/2) / math.Pi
 	return true
 }
+
+type Cube struct {
+	center mathutils.Vector
+	edge   float64
+}
+
+func NewCube(center mathutils.Vector, edge float64) Cube {
+	return Cube{center, edge}
+}
+
+func (c *Cube) intersectSide(ray *Ray, normal mathutils.Vector, info *IntersectionInfo, level, start, direction float64) bool {
+	if start > level && direction >= 0 {
+		return false
+	}
+	if start < level && direction <= 0 {
+		return false
+	}
+
+	scaleFactor := (level - start) / direction
+	ip := mathutils.VectorAddition(ray.Start, mathutils.VectorMultiply(ray.Direction, scaleFactor))
+	if ip.X > c.center.X+c.edge/2+1e-6 || ip.X < c.center.X-c.edge/2-1e-6 {
+		return false
+	}
+	if ip.Y > c.center.Y+c.edge/2+1e-6 || ip.Y < c.center.Y-c.edge/2-1e-6 {
+		return false
+	}
+	if ip.Z > c.center.Z+c.edge/2+1e-6 || ip.Z < c.center.Z-c.edge/2-1e-6 {
+		return false
+	}
+
+	distance := scaleFactor
+	if distance < info.Distance {
+		info.Position = ip
+		info.Distance = distance
+		info.Normal = normal
+		if normal.Y == 0 {
+			info.U = ip.X + ip.Z
+			info.V = ip.Y
+		} else {
+			info.U = ip.X
+			info.V = ip.Z
+		}
+
+		return true
+	}
+
+	return false
+}
+
+func (c *Cube) Intersect(ray *Ray, info *IntersectionInfo) bool {
+	info.Distance = 1e99
+	c.intersectSide(ray, mathutils.NewVector(-1, 0, 0), info, c.center.X-c.edge/2, ray.Start.X, ray.Direction.X)
+	c.intersectSide(ray, mathutils.NewVector(+1, 0, 0), info, c.center.X+c.edge/2, ray.Start.X, ray.Direction.X)
+	c.intersectSide(ray, mathutils.NewVector(0, -1, 0), info, c.center.Y-c.edge/2, ray.Start.Y, ray.Direction.Y)
+	c.intersectSide(ray, mathutils.NewVector(0, +1, 0), info, c.center.Y+c.edge/2, ray.Start.Y, ray.Direction.Y)
+	c.intersectSide(ray, mathutils.NewVector(0, 0, -1), info, c.center.Z-c.edge/2, ray.Start.Z, ray.Direction.Z)
+	c.intersectSide(ray, mathutils.NewVector(0, 0, +1), info, c.center.Z+c.edge/2, ray.Start.Z, ray.Direction.Z)
+
+	return info.Distance < 1e99
+
+}
