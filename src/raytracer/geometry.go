@@ -91,3 +91,47 @@ func (p *Plane) Intersect(ray *Ray, info *IntersectionInfo) bool {
 
 	return true
 }
+
+type Sphere struct {
+	center mathutils.Vector
+	radius float64
+}
+
+func NewSphere(center mathutils.Vector, radius float64) Sphere {
+	return Sphere{center, radius}
+}
+
+func (s *Sphere) Intersect(ray *Ray, info *IntersectionInfo) bool {
+	H := mathutils.VectorSubstraction(ray.Start, s.center)
+
+	A := ray.Direction.LengthSqr()
+	B := 2 * mathutils.DotProduct(H, ray.Direction)
+	C := H.LengthSqr() - s.radius*s.radius
+
+	D := B*B - 4*A*C
+	if D < 0 {
+		return false
+	}
+
+	x1 := (-B + math.Sqrt(D)) / (2 * A)
+	x2 := (-B - math.Sqrt(D)) / (2 * A)
+	if x1 < 0 && x2 < 0 {
+		return false
+	}
+
+	if x2 < 0 || (x1 >= 0 && x1 < x2) {
+		info.Distance = x1
+	} else {
+		info.Distance = x2
+	}
+
+	info.Position = mathutils.VectorAddition(ray.Start, mathutils.VectorMultiply(ray.Direction, info.Distance))
+	info.Normal = mathutils.VectorSubstraction(info.Position, s.center)
+	info.Normal.Normalize()
+	relativePosition := mathutils.VectorSubstraction(info.Position, s.center)
+	info.U = math.Atan2(relativePosition.Z, relativePosition.X)
+	info.V = math.Asin(relativePosition.Y / s.radius)
+	info.U = (info.U + math.Pi) / (2 * math.Pi)
+	info.V = -(info.V + math.Pi/2) / math.Pi
+	return true
+}

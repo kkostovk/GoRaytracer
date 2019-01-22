@@ -10,8 +10,12 @@ func NewVector(x, y, z float64) Vector {
 	return Vector{x, y, z}
 }
 
-func (v *Vector) Lenght() float64 {
+func (v *Vector) Length() float64 {
 	return math.Sqrt(v.X*v.X + v.Y*v.Y + v.Z*v.Z)
+}
+
+func (v *Vector) LengthSqr() float64 {
+	return v.X*v.X + v.Y*v.Y + v.Z*v.Z
 }
 
 func (v *Vector) Add(rhs Vector) {
@@ -31,7 +35,7 @@ func (v *Vector) UnaryMinus() {
 }
 
 func (v *Vector) Normalize() {
-	mul := 1.0 / v.Lenght()
+	mul := 1.0 / v.Length()
 	v.Multiply(mul)
 }
 
