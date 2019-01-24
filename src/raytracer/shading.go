@@ -51,8 +51,8 @@ type Lambert struct {
 	texture *Texture
 }
 
-func NewLambert(color utils.Color, texture *Texture) Lambert {
-	return Lambert{color, texture}
+func NewLambert(color utils.Color, texture Texture) Lambert {
+	return Lambert{color, &texture}
 }
 
 func (l *Lambert) Shade(ray *Ray, info *IntersectionInfo) utils.Color {
