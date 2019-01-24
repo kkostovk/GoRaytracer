@@ -58,3 +58,14 @@ func VectorAddition(lhs, rhs Vector) Vector {
 func VectorMultiply(lhs Vector, rhs float64) Vector {
 	return Vector{lhs.X * rhs, lhs.Y * rhs, lhs.Z * rhs}
 }
+
+func Reflect(in, normal Vector) Vector {
+	in.Normalize()
+	result := in
+	normal.Multiply(2)
+	in.UnaryMinus()
+	result.Add(VectorMultiply(normal, DotProduct(normal, in)))
+	result.Normalize()
+
+	return result
+}
