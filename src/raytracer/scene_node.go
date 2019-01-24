@@ -5,8 +5,8 @@ type Node struct {
 	shader   *Shader
 }
 
-func NewNode(geometry Geometry, shader Shader) Node {
-	return Node{&geometry, &shader}
+func NewNode(geometry *Geometry, shader *Shader) Node {
+	return Node{geometry, shader}
 }
 
 func (n *Node) GetGeometry() *Geometry {

@@ -24,7 +24,7 @@ func (c *Color) Multiply(multiplier float64) {
 	*c = MultiplyColorFloat(*c, multiplier)
 }
 
-func (c *Color) Devide(divider float64) {
+func (c *Color) Divide(divider float64) {
 	*c = DivideColorFloat(*c, divider)
 }
 
