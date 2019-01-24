@@ -71,3 +71,44 @@ func (l *Lambert) Shade(ray *Ray, info *IntersectionInfo) utils.Color {
 	diffuse.Multiply(lambertCoeff * attenuationCoeff * Light1.power)
 	return diffuse
 }
+
+type Phong struct {
+	color              utils.Color
+	texture            *Texture
+	specularMultiplier float64
+	specularExponent   float64
+}
+
+func NewPhong(color utils.Color, texture *Texture, specularMultiplier, specularExponent float64) Phong {
+	return Phong{color, texture, specularMultiplier, specularExponent}
+}
+
+func (p *Phong) Shade(ray *Ray, info *IntersectionInfo) utils.Color {
+	diffuse := p.color
+	if p.texture != nil {
+		diffuse = (*p.texture).Sample(info)
+	}
+
+	v1 := info.Normal
+	v2 := mathutils.VectorSubstraction(Light1.position, info.Position)
+	distanceToLightSqr := v2.LengthSqr()
+	v2.Normalize()
+
+	lambertCoeff := mathutils.DotProduct(v1, v2)
+	fromLight := Light1.power / distanceToLightSqr
+
+	reflected := mathutils.Reflect(mathutils.VectorSubstraction(info.Position, Light1.position), info.Normal)
+	toCamera := ray.Direction
+	toCamera.UnaryMinus()
+	cosGamma := mathutils.DotProduct(toCamera, reflected)
+	phongCoeff := 0.0
+	if cosGamma > 0 {
+		phongCoeff = math.Pow(cosGamma, p.specularExponent)
+	}
+
+	diffuse.Multiply(lambertCoeff * fromLight)
+	result := utils.NewColor(255, 255, 255)
+	result.Multiply(phongCoeff * p.specularMultiplier * fromLight)
+
+	return utils.ColorAddition(result, diffuse)
+}
