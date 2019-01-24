@@ -1,12 +1,19 @@
 package raytracer
 
-import "GoRaytracer/src/utils"
+import (
+	"GoRaytracer/src/mathutils"
+	"GoRaytracer/src/utils"
+)
 
 type Light struct {
-	color utils.Color
-	power float64
+	position mathutils.Vector
+	color    utils.Color
+	power    float64
 }
 
-func NewLight(color utils.Color, power float64) Light {
-	return Light{color, power}
+func NewLight(position mathutils.Vector, color utils.Color, power float64) Light {
+	return Light{position, color, power}
 }
+
+var Light1 Light
+var AmbientLight Light
