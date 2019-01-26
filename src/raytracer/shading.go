@@ -11,7 +11,7 @@ type Texture interface {
 }
 
 type Shader interface {
-	Shade(*Ray, *IntersectionInfo) utils.Color
+	Shade(*Ray, *IntersectionInfo, *Scene) utils.Color
 }
 
 type SimpleColor struct {
@@ -55,21 +55,26 @@ func NewLambert(color utils.Color, texture Texture) Lambert {
 	return Lambert{color, &texture}
 }
 
-func (l *Lambert) Shade(ray *Ray, info *IntersectionInfo) utils.Color {
+func (l *Lambert) Shade(ray *Ray, info *IntersectionInfo, scene *Scene) utils.Color {
+	var result utils.Color
 	diffuse := l.color
 	if l.texture != nil {
 		diffuse = (*l.texture).Sample(info)
 	}
 
-	v1 := info.Normal
-	v2 := mathutils.VectorSubstraction(Light1.position, info.Position)
-	distanceToLightSqr := v2.LengthSqr()
-	v2.Normalize()
+	diffuse = utils.ColorMultiplication(diffuse, scene.ambientLight)
 
-	lambertCoeff := mathutils.DotProduct(v1, v2)
-	attenuationCoeff := 1.0 / distanceToLightSqr
-	diffuse.Multiply(lambertCoeff * attenuationCoeff * Light1.power)
-	return diffuse
+	for _, light := range scene.lights {
+		displacedRay := mathutils.VectorAddition(info.Position, mathutils.VectorMultiply(info.Normal, 1e-4))
+		if visibilityCheck(displacedRay, light.position, scene) {
+			lightContribution := utils.ColorAddition(scene.ambientLight, getLightContribution(ray, info, &light))
+			result = utils.ColorMultiplication(diffuse, lightContribution)
+		} else {
+			result = utils.ColorMultiplication(diffuse, utils.Color{0.5, 0.5, 0.5})
+		}
+	}
+
+	return result
 }
 
 type Phong struct {
@@ -79,36 +84,66 @@ type Phong struct {
 	specularExponent   float64
 }
 
-func NewPhong(color utils.Color, texture *Texture, specularMultiplier, specularExponent float64) Phong {
-	return Phong{color, texture, specularMultiplier, specularExponent}
+func NewPhong(color utils.Color, texture Texture, specularMultiplier, specularExponent float64) Phong {
+	return Phong{color, &texture, specularMultiplier, specularExponent}
 }
 
-func (p *Phong) Shade(ray *Ray, info *IntersectionInfo) utils.Color {
+func (p *Phong) Shade(ray *Ray, info *IntersectionInfo, scene *Scene) utils.Color {
+	var result utils.Color
 	diffuse := p.color
 	if p.texture != nil {
 		diffuse = (*p.texture).Sample(info)
 	}
 
-	v1 := info.Normal
-	v2 := mathutils.VectorSubstraction(Light1.position, info.Position)
-	distanceToLightSqr := v2.LengthSqr()
-	v2.Normalize()
+	for _, light := range scene.lights {
+		reflected := mathutils.Reflect(mathutils.VectorSubstraction(info.Position, light.position), info.Normal)
+		toCamera := ray.Direction
+		toCamera.UnaryMinus()
+		cosGamma := mathutils.DotProduct(toCamera, reflected)
+		phongCoeff := 0.0
+		if cosGamma > 0 {
+			phongCoeff = math.Pow(cosGamma, p.specularExponent)
+		}
 
-	lambertCoeff := mathutils.DotProduct(v1, v2)
-	fromLight := Light1.power / distanceToLightSqr
-
-	reflected := mathutils.Reflect(mathutils.VectorSubstraction(info.Position, Light1.position), info.Normal)
-	toCamera := ray.Direction
-	toCamera.UnaryMinus()
-	cosGamma := mathutils.DotProduct(toCamera, reflected)
-	phongCoeff := 0.0
-	if cosGamma > 0 {
-		phongCoeff = math.Pow(cosGamma, p.specularExponent)
+		lightContribution := utils.ColorMultiplication(scene.ambientLight, getLightContribution(ray, info, &light))
+		diffuse = utils.ColorAddition(diffuse, lightContribution)
+		specular := utils.MultiplyColorFloat(lightContribution, phongCoeff*p.specularMultiplier)
+		result = utils.ColorAddition(diffuse, specular)
 	}
 
-	diffuse.Multiply(lambertCoeff * fromLight)
-	result := utils.NewColor(255, 255, 255)
-	result.Multiply(phongCoeff * p.specularMultiplier * fromLight)
+	result = utils.ColorMultiplication(result, scene.ambientLight)
+	return result
+}
 
-	return utils.ColorAddition(result, diffuse)
+func visibilityCheck(start, end mathutils.Vector, scene *Scene) bool {
+	direction := mathutils.VectorSubstraction(end, start)
+	targetDistance := direction.Length()
+	direction.Normalize()
+	ray := NewRay(start, direction)
+
+	for _, node := range scene.SceneNodes {
+		var info IntersectionInfo
+		if !(*node.geometry).Intersect(&ray, &info) {
+			continue
+		}
+
+		if info.Distance < targetDistance {
+			return false
+		}
+	}
+
+	return true
+}
+
+func getLightContribution(ray *Ray, info *IntersectionInfo, light *Light) utils.Color {
+	vectorToLight := mathutils.VectorSubstraction(light.position, info.Position)
+	distanceToLightSqr := vectorToLight.LengthSqr()
+
+	vectorToLight.Normalize()
+	cosTheta := mathutils.DotProduct(vectorToLight, mathutils.Faceforward(ray.Direction, info.Normal))
+
+	result := light.color
+	result.Multiply(light.power / distanceToLightSqr * cosTheta)
+
+	return result
 }
