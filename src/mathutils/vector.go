@@ -69,3 +69,12 @@ func Reflect(in, normal Vector) Vector {
 
 	return result
 }
+
+func Faceforward(ray, normal Vector) Vector {
+	if DotProduct(ray, normal) < 0 {
+		return normal
+	}
+
+	normal.UnaryMinus()
+	return normal
+}

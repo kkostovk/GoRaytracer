@@ -3,7 +3,7 @@ package raytracer
 import "GoRaytracer/src/utils"
 
 type Scene struct {
-	sceneNodes   []Node
+	SceneNodes   []Node
 	lights       []Light
 	ambientLight utils.Color
 }
@@ -20,7 +20,6 @@ func (s *Scene) AddLight(light Light) {
 	s.lights = append(s.lights, light)
 }
 
-func (s *Scene) AddNode(geometry *Geometry, shader *Shader) {
-	node := NewNode(geometry, shader)
-	s.sceneNodes = append(s.sceneNodes, node)
+func (s *Scene) AddNode(geometry Geometry, shader Shader) {
+	s.SceneNodes = append(s.SceneNodes, NewNode(&geometry, &shader))
 }
