@@ -25,17 +25,17 @@ func TestNewVector(t *testing.T) {
 
 func TestLenght(t *testing.T) {
 	vec1 := NewVector(0, 0, 0)
-	if vec1.Lenght() != 0 {
+	if vec1.Length() != 0 {
 		t.Errorf("Vector.Lenght() failed!")
 	}
 
 	vec2 := NewVector(3, 0, 0)
-	if vec2.Lenght() != 3 {
+	if vec2.Length() != 3 {
 		t.Errorf("Vector.Lenght() failed!")
 	}
 
 	vec3 := NewVector(4, 3, 0)
-	if vec3.Lenght() != 5 {
+	if vec3.Length() != 5 {
 		t.Errorf("Vector.Lenght() failed!")
 	}
 }
