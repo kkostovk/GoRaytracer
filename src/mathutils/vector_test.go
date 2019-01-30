@@ -23,20 +23,37 @@ func TestNewVector(t *testing.T) {
 	}
 }
 
-func TestLenght(t *testing.T) {
+func TestLength(t *testing.T) {
 	vec1 := NewVector(0, 0, 0)
 	if vec1.Length() != 0 {
-		t.Errorf("Vector.Lenght() failed!")
+		t.Errorf("Vector.Length() failed!")
 	}
 
 	vec2 := NewVector(3, 0, 0)
 	if vec2.Length() != 3 {
-		t.Errorf("Vector.Lenght() failed!")
+		t.Errorf("Vector.Length() failed!")
 	}
 
 	vec3 := NewVector(4, 3, 0)
 	if vec3.Length() != 5 {
-		t.Errorf("Vector.Lenght() failed!")
+		t.Errorf("Vector.Length() failed!")
+	}
+}
+
+func TestLengthSqr(t *testing.T) {
+	vec1 := NewVector(0, 0, 0)
+	if vec1.LengthSqr() != 0 {
+		t.Errorf("Vector.LengthSqr() failed!")
+	}
+
+	vec2 := NewVector(3, 0, 0)
+	if vec2.LengthSqr() != 9 {
+		t.Errorf("Vector.LengthSqr() failed!")
+	}
+
+	vec3 := NewVector(4, 3, 0)
+	if vec3.LengthSqr() != 25 {
+		t.Errorf("Vector.LengthSqr() failed!")
 	}
 }
 
@@ -169,5 +186,56 @@ func TestCrossProduct(t *testing.T) {
 	resVec = CrossProduct(NewVector(4, 2, 1), NewVector(1, 7, 3))
 	if resVec != NewVector(-1, -11, 26) {
 		t.Errorf("CrossProduct() failed!")
+	}
+}
+
+func TestVectorSubstraction(t *testing.T) {
+	resVec := VectorSubstraction(NewVector(1, 1, 1), NewVector(1, 1, 1))
+	if resVec != NewVector(0, 0, 0) {
+		t.Errorf("VectorSubstraction() failed!")
+	}
+
+	resVec = VectorSubstraction(NewVector(1, 2, 4), NewVector(-1, -1, -1))
+	if resVec != NewVector(2, 3, 5) {
+		t.Errorf("VectorSubstraction() failed!")
+	}
+
+	resVec = VectorSubstraction(NewVector(5, 8, 13), NewVector(21, 34, 55))
+	if resVec != NewVector(-16, -26, -42) {
+		t.Errorf("VectorSubstraction() failed!")
+	}
+}
+
+func TestVectorAddition(t *testing.T) {
+	resVec := VectorAddition(NewVector(0, 0, 0), NewVector(0, 0, 0))
+	if resVec != NewVector(0, 0, 0) {
+		t.Errorf("VectorAddition() failed!")
+	}
+
+	resVec = VectorAddition(NewVector(1, 2, 4), NewVector(-1, -1, -1))
+	if resVec != NewVector(0, 1, 3) {
+		t.Errorf("VectorAddition() failed!")
+	}
+
+	resVec = VectorAddition(NewVector(5, 8, 13), NewVector(21, 34, 55))
+	if resVec != NewVector(26, 42, 68) {
+		t.Errorf("VectorAddition() failed!")
+	}
+}
+
+func TestVectorMultiply(t *testing.T) {
+	resVec := VectorMultiply(NewVector(0, 0, 0), 42)
+	if resVec != NewVector(0, 0, 0) {
+		t.Errorf("VectorMultiply() failed!")
+	}
+
+	resVec = VectorMultiply(NewVector(1, 1, 1), 42)
+	if resVec != NewVector(42, 42, 42) {
+		t.Errorf("VectorMultiply() failed!")
+	}
+
+	resVec = VectorMultiply(NewVector(2, 4, 16), 0.5)
+	if resVec != NewVector(1, 2, 8) {
+		t.Errorf("VectorMultiply() failed!")
 	}
 }
