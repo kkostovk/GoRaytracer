@@ -65,15 +65,14 @@ func (l *Lambert) Shade(ray *Ray, info *IntersectionInfo, scene *Scene) utils.Co
 	diffuse = utils.ColorMultiplication(diffuse, scene.ambientLight)
 
 	for _, light := range scene.lights {
-		displacedRay := mathutils.VectorAddition(info.Position, mathutils.VectorMultiply(info.Normal, 1e-4))
+		displacedRay := mathutils.VectorAddition(info.Position, mathutils.VectorMultiply(info.Normal, 1e-5))
 		if visibilityCheck(displacedRay, light.position, scene) {
-			lightContribution := utils.ColorAddition(scene.ambientLight, getLightContribution(ray, info, &light))
+			lightContribution := getLightContribution(ray, info, &light)
 			result = utils.ColorMultiplication(diffuse, lightContribution)
 		} else {
-			result = utils.ColorMultiplication(diffuse, utils.Color{0.5, 0.5, 0.5})
+			result = utils.ColorMultiplication(diffuse, utils.Color{0.05, 0.05, 0.05})
 		}
 	}
-
 	return result
 }
 

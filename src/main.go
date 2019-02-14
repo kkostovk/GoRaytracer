@@ -3,98 +3,130 @@ package main
 import (
 	"GoRaytracer/src/mathutils"
 	"GoRaytracer/src/raytracer"
+	"GoRaytracer/src/sdlwrapper"
 	"GoRaytracer/src/utils"
-
-	"github.com/veandco/go-sdl2/sdl"
+	"fmt"
+	"sync"
 )
+
+type Pixel struct {
+	x, y  int
+	color utils.Color
+}
 
 const frameHeight int = 480
 const frameWidth int = 640
 
-var Lights []raytracer.Light
-var nodes []*raytracer.Node
+var vfb [frameHeight][frameWidth]utils.Color
+var scene raytracer.Scene
 var camera raytracer.ParallelCamera
+
+var finishedRendering bool = false
+var pixels chan Pixel
 
 func setupScene() {
 	// Setup camera
-	camera = raytracer.NewParallelCamera(mathutils.NewVector(40, -30, 50), 0, -30, 0, 90, float64(frameWidth)/float64(frameHeight))
+	camera = raytracer.NewParallelCamera(mathutils.NewVector(60, 60, -100), 0, 30, 0, 90, float64(frameWidth)/float64(frameHeight))
+	scene = raytracer.NewScene()
+	scene.SetAmbientLight(utils.NewColor(255, 255, 255))
+	light1 := raytracer.NewLight(mathutils.NewVector(35, 180, -100), utils.NewColor(255, 255, 255), 25000)
+	scene.AddLight(light1)
 	// Add scene nodes
-	plane := raytracer.NewPlane(mathutils.NewVector(0, 0, 0), 500.0, 1)
-	checker := raytracer.NewChecker(utils.NewColor(255, 0, 0), utils.NewColor(0, 0, 255))
-	node := raytracer.NewNode(&plane, &checker)
-	nodes = append(nodes, &node)
+
+	// Add a plane
+	plane := raytracer.NewPlane(mathutils.NewVector(0, 0, 0), 300, 1)
+	planeColor := raytracer.NewSimpleColor(utils.NewColor(0, 0, 255))
+	planeShader := raytracer.NewLambert(utils.Color{0, 0, 0}, &planeColor)
+	scene.AddNode(&plane, &planeShader)
+
+	// Add a sphere
+	sphere := raytracer.NewSphere(mathutils.NewVector(0, 70, 0), 20)
+	sphereColor := raytracer.NewSimpleColor(utils.NewColor(255, 0, 0))
+	//sphereChecker := raytracer.NewChecker(utils.NewColor(0, 255, 0), utils.NewColor(255, 0, 0), 50)
+	//sphereShader := raytracer.NewPhong(utils.Color{0, 255, 0}, &sphereColor, 5.3, 20)
+	sphereShader := raytracer.NewLambert(utils.Color{0, 255, 0}, &sphereColor)
+	scene.AddNode(&sphere, &sphereShader)
 }
 
 func raytrace(ray *raytracer.Ray) utils.Color {
 	var info raytracer.IntersectionInfo
-
-	var closestInfo *raytracer.IntersectionInfo
-	var closestNode *raytracer.Node
-	for _, node := range nodes {
+	closestDistance := 1e99
+	var closestInfo raytracer.IntersectionInfo
+	var closestNode raytracer.Node
+	for _, node := range scene.SceneNodes {
 		if (*node.GetGeometry()).Intersect(ray, &info) {
-			if closestInfo == nil || info.Distance < closestInfo.Distance {
-				closestInfo = &info
+			if info.Distance < closestDistance {
+				closestDistance = info.Distance
+				closestInfo = info
 				closestNode = node
 			}
 		}
 	}
 
-	if closestNode != nil {
-		return (*closestNode.GetShader()).Shade(ray, closestInfo)
+	if closestDistance < 1e99 {
+		return (*closestNode.GetShader()).Shade(ray, &closestInfo, &scene)
 	}
 
-	return utils.NewColor(0, 0, 0)
+	return utils.NewColor(255, 255, 255)
 }
 
-func render(renderer *sdl.Renderer) {
+func render(displayWrapper *sdlwrapper.DisplayWrapper) {
+	var wg sync.WaitGroup
+	wg.Add(frameWidth)
 	for x := 0; x < frameWidth; x++ {
-		for y := 0; y < frameHeight; y++ {
-			ray := camera.GetScreenRay(float64(x), float64(y))
-			resColor := raytrace(&ray)
-			r, g, b := resColor.ToRGB()
-			renderer.SetDrawColor(r, g, b, 0)
-			renderer.DrawPoint(int32(x), int32(y))
-		}
+		go func(x int) {
+			defer wg.Done()
+			for y := 0; y < frameHeight; y++ {
+				ray := camera.GetScreenRay(float64(x), float64(y))
+				resColor := raytrace(&ray)
+				vfb[y][x] = resColor
+				pixels <- Pixel{x, y, resColor}
+			}
+		}(x)
 	}
+	wg.Wait()
+	close(pixels)
+	finishedRendering = true
+}
+
+func display(displayWrapper *sdlwrapper.DisplayWrapper) {
+	for !finishedRendering {
+		for i := 0; i < 1024; i++ {
+			pixel := <-pixels
+			displayWrapper.DrawPixel(pixel.x, pixel.y, pixel.color)
+		}
+		displayWrapper.Display()
+	}
+
+	for pixel := range pixels {
+		displayWrapper.DrawPixel(pixel.x, pixel.y, pixel.color)
+	}
+	displayWrapper.Display()
 }
 
 func main() {
-	err := sdl.Init(sdl.INIT_EVERYTHING)
+	displayWrapper, err := sdlwrapper.NewDisplayWrapper(frameWidth, frameHeight, "GoRaytracer")
 	if err != nil {
 		return
 	}
-	defer sdl.Quit()
+	defer displayWrapper.Destroy()
 
-	window, err := sdl.CreateWindow("GoRaytracer", sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED, int32(frameWidth), int32(frameHeight), sdl.WINDOW_SHOWN)
-	if err != nil {
-		return
-	}
-	defer window.Destroy()
-
-	surface, err := window.GetSurface()
-	if err != nil {
-		return
-	}
-	surface.FillRect(nil, 0)
-
-	renderer, err := sdl.CreateRenderer(window, -1, sdl.RENDERER_ACCELERATED)
-	if err != nil {
-		return
-	}
-	defer renderer.Destroy()
+	pixels = make(chan Pixel, 1024)
 
 	setupScene()
-	render(renderer)
-	renderer.Present()
+	go render(displayWrapper)
+	display(displayWrapper)
+	fmt.Println("We got here!")
+	saver := utils.NewPNGSaver(frameWidth, frameHeight, "D:\\Go\\image.png")
+	saver.Open()
 
-	running := true
-	for running {
-		for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
-			switch event.(type) {
-			case *sdl.QuitEvent:
-				running = false
-				break
-			}
+	for x := 0; x < frameWidth; x++ {
+		for y := 0; y < frameHeight; y++ {
+			saver.SetPixel(x, y, vfb[y][x])
 		}
 	}
+	saver.Save()
+	saver.Close()
+
+	sdlwrapper.WaitExit()
 }
