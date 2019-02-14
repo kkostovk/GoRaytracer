@@ -45,7 +45,7 @@ func (d *DisplayWrapper) Destroy() {
 	sdl.Quit()
 }
 
-// Draw a pixel with the given color at the given coordinates.
+// Draw a pixel with the given color at the given coordinates to be displayed later.
 func (d *DisplayWrapper) DrawPixel(x, y int, color utils.Color) {
 	r, g, b := color.ToRGB()
 	d.renderer.SetDrawColor(r, g, b, 255)
