@@ -1,3 +1,4 @@
+// Package raytracer provides the raytracer logic.
 package raytracer
 
 import (
@@ -12,27 +13,32 @@ const (
 	YZ
 )
 
+// IntersectionInfo holds the information about the intersection point.
 type IntersectionInfo struct {
-	Position mathutils.Vector
-	Normal   mathutils.Vector
-	Distance float64
-	U, V     float64
+	Position mathutils.Vector // Position of the intersection.
+	Normal   mathutils.Vector // Normal at the given position.
+	Distance float64          // Distance to the camera.
+	U, V     float64          // U and V coordinates.
 }
 
+// Geometry provides a interface for intersection.
 type Geometry interface {
 	Intersect(*Ray, *IntersectionInfo) bool
 }
 
+// Plane defines a plane in the 3-dimentional space.
 type Plane struct {
-	center      mathutils.Vector
-	limit       float64
-	orientation uint8
+	center      mathutils.Vector // Center of the plane.
+	limit       float64          // How far the plane stretches.
+	orientation uint8            // Plane orientation.
 }
 
+// NewPlane creates a new plane with the given center, limit, orientation and returns it.
 func NewPlane(center mathutils.Vector, limit float64, orientation uint8) Plane {
 	return Plane{center, limit, orientation}
 }
 
+// Intersect implements the intersect method of the Geometry interface for Plane.
 func (p *Plane) Intersect(ray *Ray, info *IntersectionInfo) bool {
 
 	var start, direction, plane float64
@@ -92,15 +98,18 @@ func (p *Plane) Intersect(ray *Ray, info *IntersectionInfo) bool {
 	return true
 }
 
+// Sphere defines a sphere in the 3-dimentional space.
 type Sphere struct {
-	center mathutils.Vector
-	radius float64
+	center mathutils.Vector // The center of the sphere.
+	radius float64          // The radius of the sphere.
 }
 
+// NewSphere creates and returns a new sphere with the given center and radius.
 func NewSphere(center mathutils.Vector, radius float64) Sphere {
 	return Sphere{center, radius}
 }
 
+// Intersect implements the intersect method of the Geometry interface for Sphere.
 func (s *Sphere) Intersect(ray *Ray, info *IntersectionInfo) bool {
 	H := mathutils.VectorSubstraction(ray.Start, s.center)
 
@@ -136,11 +145,13 @@ func (s *Sphere) Intersect(ray *Ray, info *IntersectionInfo) bool {
 	return true
 }
 
+// Cube defines a cube with walls parallel to the XYZ axis in the 3-dimentional space.
 type Cube struct {
-	center mathutils.Vector
-	edge   float64
+	center mathutils.Vector // The center of the cube.
+	edge   float64          // The length of the edge of the cube.
 }
 
+// NewCube creates and returns a new cube with the given center and edge length.
 func NewCube(center mathutils.Vector, edge float64) Cube {
 	return Cube{center, edge}
 }
@@ -184,6 +195,7 @@ func (c *Cube) intersectSide(ray *Ray, normal mathutils.Vector, info *Intersecti
 	return false
 }
 
+// Intersect implements the intersect method of the Geometry interface for Cube.
 func (c *Cube) Intersect(ray *Ray, info *IntersectionInfo) bool {
 	info.Distance = 1e99
 	c.intersectSide(ray, mathutils.NewVector(-1, 0, 0), info, c.center.X-c.edge/2, ray.Start.X, ray.Direction.X)

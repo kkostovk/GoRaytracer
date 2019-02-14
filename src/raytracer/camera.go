@@ -5,17 +5,20 @@ import (
 	"math"
 )
 
+// Camera provides an interface for getting screen rays from cameras.
 type Camera interface {
 	GetScreenRay(x, y float64) Ray
 }
 
+// ParallelCamera defines a pinhole camera.
 type ParallelCamera struct {
-	position   mathutils.Vector
-	topLeft    mathutils.Vector
-	topRight   mathutils.Vector
-	bottomLeft mathutils.Vector
+	position   mathutils.Vector // The position of the camera.
+	topLeft    mathutils.Vector // The top left corner of the screen view.
+	topRight   mathutils.Vector // The top right corner of the screen view.
+	bottomLeft mathutils.Vector // The bottom left corner of the screen view.
 }
 
+// NewParallelCamera creates and returns a new pinhole camera.
 func NewParallelCamera(position mathutils.Vector, yaw, pitch, roll, fov, aspectRatio float64) ParallelCamera {
 	x2d := aspectRatio
 	y2d := 1.0
@@ -47,6 +50,7 @@ func NewParallelCamera(position mathutils.Vector, yaw, pitch, roll, fov, aspectR
 	return ParallelCamera{position, topLeft, topRight, bottomLeft}
 }
 
+// GetScreenRay return the screen ray for the given coordinates.
 func (c *ParallelCamera) GetScreenRay(x, y float64) Ray {
 	direction := c.topLeft
 	width := mathutils.VectorSubstraction(c.topRight, c.topLeft)
