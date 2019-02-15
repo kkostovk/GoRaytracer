@@ -1,0 +1,37 @@
+FrameSettings {
+    frameWidth                  640
+    frameHeight                 480
+}
+
+Camera {
+    position                    60 60 -100
+    yaw                         0
+    pitch                       30
+    roll                        0
+    fov                         90
+    aspectRatio                 1.33
+}
+
+AmbientLight                    255 255 255
+
+Light {
+    position                    35 180 -100
+    color                       255 255 255
+    power                       25000
+}
+
+Node {
+    geometry Sphere {
+        center                  0 70 0
+        radius                  50.0
+    }
+
+    shader Lambert {
+        color                   255 255 0
+        texture SimpleColor {
+                color           255 0 0
+        }
+    }
+}
+
+End
