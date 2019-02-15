@@ -66,6 +66,11 @@ func NewLambert(color utils.Color, texture Texture) Lambert {
 	return Lambert{color, &texture}
 }
 
+// SetTexture sets the texture for the current lambert shader.
+func (l *Lambert) SetTexture(texture Texture) {
+	l.texture = &texture
+}
+
 // Shade implements a lambert shader.
 func (l *Lambert) Shade(ray *Ray, info *IntersectionInfo, scene *Scene) utils.Color {
 	var result utils.Color
@@ -99,6 +104,11 @@ type Phong struct {
 // NewPhong creates and returns a new phong shader.
 func NewPhong(color utils.Color, texture Texture, specularMultiplier, specularExponent float64) Phong {
 	return Phong{color, &texture, specularMultiplier, specularExponent}
+}
+
+// SetTexture sets the texture for the current phong shader.
+func (p *Phong) SetTexture(texture Texture) {
+	p.texture = &texture
 }
 
 // Shade implements a phong shader.

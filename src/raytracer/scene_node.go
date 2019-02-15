@@ -21,3 +21,13 @@ func (n *Node) GetGeometry() *Geometry {
 func (n *Node) GetShader() *Shader {
 	return n.shader
 }
+
+// SetGeometry sets the geometry for the current scene node.
+func (n *Node) SetGeometry(geometry Geometry) {
+	n.geometry = &geometry
+}
+
+// SetShader sets the shader for the current scene node.
+func (n *Node) SetShader(shader Shader) {
+	n.shader = &shader
+}
