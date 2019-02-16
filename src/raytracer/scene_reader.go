@@ -530,6 +530,8 @@ func (s *SceneReader) readLambert() (lambert Lambert, err error) {
 			return
 		}
 		lambert.SetTexture(&checker)
+	case name == "nil":
+		s.position++
 	}
 
 	err = check(s.fileContent[s.position], "}")
@@ -584,6 +586,8 @@ func (s *SceneReader) readPhong() (phong Phong, err error) {
 			return
 		}
 		phong.SetTexture(&checker)
+	case name == "nil":
+		s.position++
 	}
 
 	s.position++
